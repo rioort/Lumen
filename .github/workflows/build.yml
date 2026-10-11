@@ -1,0 +1,56 @@
+name: Build macOS (VST3 + AU)
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configura (binario universale Apple Silicon + Intel)
+        run: >
+          cmake -S . -B build -G Xcode
+          -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+          -DLUMEN_COPY_AFTER_BUILD=ON
+          -DLUMEN_BUILD_TESTS=ON
+
+      - name: Compila
+        run: cmake --build build --config Release --parallel
+
+      - name: Test del motore audio
+        run: |
+          TEST_BIN=$(find build -name LumenDspTests -type f -perm +111 | head -1)
+          "$TEST_BIN"
+
+      - name: Validazione Audio Unit (auval)
+        run: |
+          killall -9 AudioComponentRegistrar || true
+          auval -v aufx Lmn1 Vibe
+
+      - name: Validazione con pluginval
+        run: |
+          curl -sSL -o pluginval.zip https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_macOS.zip
+          unzip -q pluginval.zip
+          ./pluginval.app/Contents/MacOS/pluginval --strictness-level 8 --skip-gui-tests --validate-in-process \
+            build/Lumen_artefacts/Release/VST3/Lumen.vst3
+          ./pluginval.app/Contents/MacOS/pluginval --strictness-level 8 --skip-gui-tests --validate-in-process \
+            ~/Library/Audio/Plug-Ins/Components/Lumen.component
+
+      - name: Prepara il pacchetto
+        run: |
+          mkdir -p dist
+          cp -R build/Lumen_artefacts/Release/VST3/Lumen.vst3 dist/
+          cp -R build/Lumen_artefacts/Release/AU/Lumen.component dist/
+          codesign --force --deep -s - dist/Lumen.vst3
+          codesign --force --deep -s - dist/Lumen.component
+          cp INSTALLA.txt dist/
+          cd dist && zip -r -y ../Lumen-macOS.zip .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Lumen-macOS
+          path: Lumen-macOS.zip
+          retention-days: 30

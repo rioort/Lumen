@@ -1,0 +1,21 @@
+LUMEN - Installazione su Mac
+============================
+
+1) Copia i plugin nelle cartelle di sistema (in Finder: Vai > Vai alla cartella...):
+   - Lumen.vst3       ->  ~/Library/Audio/Plug-Ins/VST3/
+   - Lumen.component  ->  ~/Library/Audio/Plug-Ins/Components/
+
+2) Sblocca i plugin (macOS blocca quelli scaricati da internet e non firmati).
+   Apri il Terminale e incolla questa riga, poi premi Invio:
+
+   xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/Lumen.vst3 ~/Library/Audio/Plug-Ins/Components/Lumen.component
+
+3) In Ableton Live: Impostazioni > Plug-in
+   - attiva "Usa Audio Units v2" e "Usa cartelle di sistema per i plug-in VST3"
+   - premi "Riesamina"
+   Lumen compare nel browser sotto Plug-in > Vibe Audio.
+
+Sidechain esterno: nel titolo del dispositivo in Live apri la sezione Sidechain,
+scegli la traccia sorgente e accendi "Ext Sidechain" nel plugin.
+
+Ogni nuova versione: ripeti i passi 1 e 2 (sostituendo i file), poi riapri il progetto.
