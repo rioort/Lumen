@@ -1,19 +1,30 @@
-LUMEN - Installazione su Windows
-================================
+LUMEN - Installazione e aggiornamento su Windows
+==============================================
 
-1) Copia la cartella Lumen.vst3 in:
-   C:\Program Files\Common Files\VST3\
-   (Windows chiede la conferma da amministratore: clicca "Continua".)
+INSTALLA O AGGIORNA CON UN SOLO COMANDO
+1) Scarica Lumen-Windows.zip dalla pagina di download (resta in Download).
+2) Chiudi la DAW.
+3) Clic destro sul menu Start > "Terminale (amministratore)" oppure
+   "Windows PowerShell (amministratore)", incolla tutto il blocco e premi Invio.
+   Il comando prende il Lumen piu' recente scaricato, sostituisce quello vecchio
+   e lo installa.
 
-2) Nella tua DAW riesamina i plug-in.
-   In Ableton Live: Impostazioni > Plug-in
-   - attiva "Usa cartella di sistema per i plug-in VST3"
-   - premi "Riesamina"
+$z = Get-ChildItem "$env:USERPROFILE\Downloads\Lumen-Windows*.zip" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+if ($z) {
+  $tmp = "$env:TEMP\Lumen-nuovo"; Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
+  Expand-Archive $z.FullName $tmp -Force
+  $dst = "C:\Program Files\Common Files\VST3"; New-Item -ItemType Directory -Force -Path $dst | Out-Null
+  Remove-Item "$dst\Lumen.vst3" -Recurse -Force -ErrorAction SilentlyContinue
+  Copy-Item "$tmp\Lumen.vst3" $dst -Recurse -Force
+  Write-Host "FATTO: Lumen installato/aggiornato. Ora riapri la DAW."
+} else { Write-Host "Non trovo Lumen-Windows.zip in Download." }
+
+4) Riapri la DAW. La prima volta, in Ableton Live: Impostazioni > Plug-in,
+   attiva "Usa cartella di sistema per i plug-in VST3" e premi "Riesamina".
    Lumen compare nel browser sotto Plug-in > Vibe Audio.
 
 Il plugin e' a 64 bit e funziona su Windows 10 e 11.
 
-Sidechain esterno: in Live apri la sezione Sidechain del dispositivo,
-scegli la traccia sorgente e accendi "Ext Sidechain" nel plugin.
-
-Ogni nuova versione: chiudi la DAW, sostituisci Lumen.vst3 e riapri.
+INSTALLAZIONE MANUALE (alternativa)
+Copia la cartella Lumen.vst3 in C:\Program Files\Common Files\VST3\
+(sostituendo quella vecchia; Windows chiede conferma da amministratore).

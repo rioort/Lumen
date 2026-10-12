@@ -1,21 +1,39 @@
-LUMEN - Installazione su Mac
-============================
+LUMEN - Installazione e aggiornamento su Mac
+==========================================
 
-1) Copia i plugin nelle cartelle di sistema (in Finder: Vai > Vai alla cartella...):
-   - Lumen.vst3       ->  ~/Library/Audio/Plug-Ins/VST3/
-   - Lumen.component  ->  ~/Library/Audio/Plug-Ins/Components/
+INSTALLA O AGGIORNA CON UN SOLO COMANDO
+1) Scarica Lumen-macOS.zip dalla pagina di download (resta nella cartella Download,
+   non serve decomprimerlo).
+2) Chiudi Ableton Live.
+3) Apri il Terminale, incolla tutto il blocco qui sotto e premi Invio.
+   Il comando prende il Lumen piu' recente che hai scaricato, cancella la versione
+   vecchia, installa quella nuova e la sblocca.
 
-2) Sblocca i plugin (macOS blocca quelli scaricati da internet e non firmati).
-   Apri il Terminale e incolla questa riga, poi premi Invio:
+Z=$(ls -t ~/Downloads/Lumen-macOS*.zip 2>/dev/null | head -1)
+if [ -n "$Z" ]; then rm -rf ~/Downloads/Lumen-nuovo; unzip -oq "$Z" -d ~/Downloads/Lumen-nuovo; fi
+V=$(find ~/Downloads ~/Desktop -maxdepth 5 -name "Lumen.vst3" -exec stat -f "%m %N" {} \; 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
+C=$(find ~/Downloads ~/Desktop -maxdepth 5 -name "Lumen.component" -exec stat -f "%m %N" {} \; 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
+if [ -n "$V" ] && [ -n "$C" ]; then
+  mkdir -p ~/Library/Audio/Plug-Ins/VST3 ~/Library/Audio/Plug-Ins/Components
+  rm -rf ~/Library/Audio/Plug-Ins/VST3/Lumen.vst3 ~/Library/Audio/Plug-Ins/Components/Lumen.component
+  cp -R "$V" ~/Library/Audio/Plug-Ins/VST3/ && cp -R "$C" ~/Library/Audio/Plug-Ins/Components/
+  xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/Lumen.vst3 ~/Library/Audio/Plug-Ins/Components/Lumen.component
+  killall -9 AudioComponentRegistrar 2>/dev/null
+  echo "FATTO: Lumen installato/aggiornato. Ora riapri Live."
+else
+  echo "Non trovo Lumen nei Download: scarica Lumen-macOS.zip e riprova."
+fi
 
-   xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/Lumen.vst3 ~/Library/Audio/Plug-Ins/Components/Lumen.component
-
-3) In Ableton Live: Impostazioni > Plug-in
-   - attiva "Usa Audio Units v2" e "Usa cartelle di sistema per i plug-in VST3"
-   - premi "Riesamina"
+4) Riapri Live. La prima volta: Impostazioni > Plug-in, attiva "Usa Audio Units v2" e
+   "Usa cartelle di sistema per i plug-in VST3", poi premi "Riesamina".
    Lumen compare nel browser sotto Plug-in > Vibe Audio.
 
-Sidechain esterno: nel titolo del dispositivo in Live apri la sezione Sidechain,
-scegli la traccia sorgente e accendi "Ext Sidechain" nel plugin.
+Consiglio: in un progetto usa una sola delle due versioni (VST3 oppure AU).
 
-Ogni nuova versione: ripeti i passi 1 e 2 (sostituendo i file), poi riapri il progetto.
+
+INSTALLAZIONE MANUALE (alternativa)
+- Lumen.vst3       ->  ~/Library/Audio/Plug-Ins/VST3/
+- Lumen.component  ->  ~/Library/Audio/Plug-Ins/Components/
+  (in Finder: Vai > Vai alla cartella... e incolla il percorso)
+- poi sblocca con il Terminale:
+  xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/Lumen.vst3 ~/Library/Audio/Plug-Ins/Components/Lumen.component
