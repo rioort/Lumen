@@ -1,6 +1,6 @@
 # Lumen – Optical Tube Compressor
 
-Compressore ottico a valvole ispirato al comportamento dei classici compressori ottici da studio. VST3 e Audio Unit per macOS (Apple Silicon e Intel).
+Compressore ottico a valvole ispirato al comportamento dei classici compressori ottici da studio. VST3 e Audio Unit per macOS (Apple Silicon e Intel), VST3 per Windows (64 bit).
 
 ## Controlli
 
@@ -30,7 +30,7 @@ Il rilascio ha un carattere "ottico": più rapido dalle riduzioni profonde, coda
 
 ## Compilazione
 
-Ogni modifica caricata su GitHub avvia la compilazione automatica (tab **Actions**): test del DSP, validazione `auval` e `pluginval`, poi il pacchetto **Lumen-macOS** pronto da scaricare.
+Ogni modifica caricata su GitHub avvia la compilazione automatica (tab **Actions**) su Mac e Windows: test del DSP, validazione `auval` e `pluginval`, poi i pacchetti **Lumen-macOS** e **Lumen-Windows** pronti da scaricare.
 
 In locale: `cmake -S . -B build -G Xcode -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" && cmake --build build --config Release`
 

@@ -1,11 +1,12 @@
-name: Build macOS (VST3 + AU)
+name: Build (macOS + Windows)
 
 on:
   push:
   workflow_dispatch:
 
 jobs:
-  build:
+  macos:
+    name: macOS (VST3 + AU)
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -53,4 +54,46 @@ jobs:
         with:
           name: Lumen-macOS
           path: Lumen-macOS.zip
+          retention-days: 30
+
+  windows:
+    name: Windows (VST3)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configura (64 bit)
+        run: cmake -S . -B build -A x64 -DLUMEN_BUILD_TESTS=ON
+
+      - name: Compila
+        run: cmake --build build --config Release --parallel
+
+      - name: Test del motore audio
+        run: |
+          $test = Get-ChildItem -Path build -Recurse -Filter LumenDspTests.exe | Select-Object -First 1
+          & $test.FullName
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Validazione con pluginval
+        run: |
+          Invoke-WebRequest -Uri https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Windows.zip -OutFile pluginval.zip
+          Expand-Archive pluginval.zip -DestinationPath pluginval
+          $pv = Get-ChildItem -Path pluginval -Recurse -Filter pluginval.exe | Select-Object -First 1
+          & $pv.FullName --strictness-level 8 --skip-gui-tests --validate-in-process build/Lumen_artefacts/Release/VST3/Lumen.vst3
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Prepara il pacchetto
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item -Recurse build/Lumen_artefacts/Release/VST3/Lumen.vst3 dist/
+          Copy-Item INSTALLA-Windows.txt dist/INSTALLA.txt
+          Compress-Archive -Path dist/* -DestinationPath Lumen-Windows.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Lumen-Windows
+          path: Lumen-Windows.zip
           retention-days: 30

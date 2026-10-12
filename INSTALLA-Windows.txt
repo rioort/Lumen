@@ -1,0 +1,19 @@
+LUMEN - Installazione su Windows
+================================
+
+1) Copia la cartella Lumen.vst3 in:
+   C:\Program Files\Common Files\VST3\
+   (Windows chiede la conferma da amministratore: clicca "Continua".)
+
+2) Nella tua DAW riesamina i plug-in.
+   In Ableton Live: Impostazioni > Plug-in
+   - attiva "Usa cartella di sistema per i plug-in VST3"
+   - premi "Riesamina"
+   Lumen compare nel browser sotto Plug-in > Vibe Audio.
+
+Il plugin e' a 64 bit e funziona su Windows 10 e 11.
+
+Sidechain esterno: in Live apri la sezione Sidechain del dispositivo,
+scegli la traccia sorgente e accendi "Ext Sidechain" nel plugin.
+
+Ogni nuova versione: chiudi la DAW, sostituisci Lumen.vst3 e riapri.

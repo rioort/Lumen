@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.22)
 
+# Su Windows include le librerie di sistema nel plugin (non serve installare
+# il Visual C++ Redistributable sul computer di chi lo usa)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 project(Lumen VERSION 1.0.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
