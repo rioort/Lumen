@@ -35,13 +35,20 @@ jobs:
         run: |
           curl -sSL -o pluginval.zip https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_macOS.zip
           unzip -q pluginval.zip
+          report () {
+            echo "::error title=pluginval $(basename "$1") exit $2::$(grep -iE 'seed' pv.log | head -2 | tr '\n' ' ')"
+            grep -n -iE 'fail|error|!!!|assert|exception|crash|timed out|Starting test' pv.log | tail -60 > rep.txt || true
+            tail -30 pv.log >> rep.txt
+            split -l 12 rep.txt part_
+            for f in part_*; do echo "::error title=pluginval log::$(cut -c1-180 "$f" | tr '\n' '|')"; done
+          }
           validate () {
             code=0
             ./pluginval.app/Contents/MacOS/pluginval --strictness-level 8 --skip-gui-tests --validate-in-process \
               --timeout-ms 600000 "$1" > pv.log 2>&1 || code=$?
             tail -40 pv.log
             if [ $code -ne 0 ]; then
-              echo "::error title=pluginval $(basename "$1")::$(grep -iE 'fail|error|!!!' pv.log | tail -8 | tr '\n' ' ' | cut -c1-900) | $(tail -6 pv.log | tr '\n' ' ' | cut -c1-500)"
+              report "$1" $code
               exit $code
             fi
           }
@@ -86,18 +93,23 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Validazione con pluginval
+        shell: bash
         run: |
-          Invoke-WebRequest -Uri https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Windows.zip -OutFile pluginval.zip
-          Expand-Archive pluginval.zip -DestinationPath pluginval
-          $pv = Get-ChildItem -Path pluginval -Recurse -Filter pluginval.exe | Select-Object -First 1
-          & $pv.FullName --strictness-level 8 --skip-gui-tests --validate-in-process --timeout-ms 600000 build/Lumen_artefacts/Release/VST3/Lumen.vst3 *> pv.log
-          $code = $LASTEXITCODE
-          Get-Content pv.log -Tail 40
-          if ($code -ne 0) {
-            $msg = ((Get-Content pv.log | Select-String -Pattern 'fail|error|!!!' | Select-Object -Last 8) -join ' ')
-            Write-Output "::error title=pluginval::$msg"
+          curl -sSL -o pluginval.zip https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Windows.zip
+          unzip -q pluginval.zip -d pluginval
+          PV=$(find pluginval -name pluginval.exe | head -1)
+          code=0
+          "$PV" --strictness-level 8 --skip-gui-tests --validate-in-process --timeout-ms 600000 \
+            build/Lumen_artefacts/Release/VST3/Lumen.vst3 > pv.log 2>&1 || code=$?
+          tail -40 pv.log
+          if [ $code -ne 0 ]; then
+            echo "::error title=pluginval Windows exit $code::$(grep -iE 'seed' pv.log | head -2 | tr '\n' ' ')"
+            grep -n -iE 'fail|error|!!!|assert|exception|crash|timed out|Starting test' pv.log | tail -60 > rep.txt || true
+            tail -30 pv.log >> rep.txt
+            split -l 12 rep.txt part_
+            for f in part_*; do echo "::error title=pluginval log::$(cut -c1-180 "$f" | tr '\n' '|')"; done
             exit $code
-          }
+          fi
 
       - name: Prepara il pacchetto
         run: |
